@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import config from "@/config";
+import { PWA_CONFIG } from "@/lib/constants";
 
 // These are all the SEO tags you can add to your pages.
 // It prefills data with default title/description/OG, etc.. and you can cusotmize it for each page.
@@ -63,6 +64,25 @@ export const getSEOTags = ({
       alternates: { canonical: canonicalUrlRelative },
     }),
 
+    // PWA specific meta tags
+    appleWebApp: {
+      capable: true,
+      title: config.appName,
+      statusBarStyle: "default",
+    },
+
+    // Additional PWA meta tags
+    other: {
+      "mobile-web-app-capable": "yes",
+      "apple-mobile-web-app-capable": "yes",
+      "apple-mobile-web-app-status-bar-style": "default",
+      "apple-mobile-web-app-title": PWA_CONFIG.APP_SHORT_NAME,
+      "application-name": PWA_CONFIG.APP_NAME,
+      "msapplication-TileColor": PWA_CONFIG.THEME_COLOR,
+      "msapplication-config": "/browserconfig.xml",
+      "theme-color": PWA_CONFIG.THEME_COLOR,
+    },
+
     // If you want to add extra tags, you can pass them here
     ...extraTags,
   };
@@ -81,30 +101,49 @@ export const renderSchemaTags = () => {
       type="application/ld+json"
       dangerouslySetInnerHTML={{
         __html: JSON.stringify({
-          "@context": "http://schema.org",
+          "@context": "https://schema.org",
           "@type": "SoftwareApplication",
           name: config.appName,
           description: config.appDescription,
-          image: `https://${config.domainName}/icon.png`,
+          image: `https://${config.domainName}/icons/icon-512x512.png`,
           url: `https://${config.domainName}/`,
           author: {
-            "@type": "Person",
-            name: "Marc Lou",
+            "@type": "Organization",
+            name: "Train Book Team",
           },
-          datePublished: "2023-08-01",
-          applicationCategory: "EducationalApplication",
+          datePublished: "2024-01-01",
+          applicationCategory: "HealthApplication",
+          operatingSystem: "All",
+          applicationSubCategory: "Fitness",
           aggregateRating: {
             "@type": "AggregateRating",
-            ratingValue: "4.8",
-            ratingCount: "12",
+            ratingValue: "4.9",
+            ratingCount: "150",
           },
           offers: [
             {
               "@type": "Offer",
-              price: "9.00",
+              price: "29.00",
               priceCurrency: "USD",
+              name: "Gym Starter Plan",
+            },
+            {
+              "@type": "Offer",
+              price: "59.00",
+              priceCurrency: "USD",
+              name: "Gym Pro Plan",
             },
           ],
+          featureList: [
+            "Gym management",
+            "Class booking system",
+            "Student management",
+            "Waitlist functionality",
+            "Push notifications",
+            "Offline access",
+            "Mobile app experience",
+          ],
+          screenshot: `https://${config.domainName}/screenshots/dashboard.png`,
         }),
       }}
     ></script>
