@@ -1,13 +1,33 @@
+"use client";
+
 import Link from "next/link";
 import ButtonSignin from "@/components/ButtonSignin";
+import { InstallPrompt } from "@/components/InstallPrompt";
+import { useEffect } from "react";
 
 export default function Page() {
+  useEffect(() => {
+    // Register service worker with proper error handling
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/sw.js")
+        .then((registration) => {
+          console.log("SW registered: ", registration);
+        })
+        .catch((registrationError) => {
+          console.log("SW registration failed: ", registrationError);
+          // Silently fail - PWA features will be disabled but app still works
+        });
+    }
+  }, []);
+
   return (
     <>
       <header className="p-4 flex justify-end max-w-7xl mx-auto">
         <ButtonSignin text="Login" />
       </header>
 
+      <InstallPrompt />
       <main>
         <section className="flex flex-col items-center justify-center text-center gap-12 px-8 py-24">
           <h1 className="text-3xl font-extrabold">Ship Fast ⚡️</h1>
