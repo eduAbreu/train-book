@@ -61,4 +61,20 @@ export interface ConfigProps {
     loginUrl: string;
     callbackUrl: string;
   };
+  gym?: {
+    maxStudents: {
+      starter: number;
+      pro: number;
+      enterprise: number; // -1 for unlimited
+    };
+    defaultSettings: {
+      allowWaitlist: boolean;
+      cancelLimitHours: number;
+    };
+    defaultClassTypes: {
+      name: string;
+      emoji: string;
+      color: string;
+    }[];
+  };
 }
