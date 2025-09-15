@@ -58,12 +58,20 @@ const ButtonSignin = ({
   }
 
   return (
-    <Link
-      className={`btn ${extraStyle ? extraStyle : ""}`}
-      href={config.auth.loginUrl}
-    >
-      {text}
-    </Link>
+    <>
+      <Link
+        className={`btn ${extraStyle ? extraStyle : ""}`}
+        href="/signin/student"
+      >
+        Student login
+      </Link>
+      <Link
+        className={`btn ${extraStyle ? extraStyle : ""}`}
+        href="/signin/owner"
+      >
+        Owner login
+      </Link>
+    </>
   );
 };
 

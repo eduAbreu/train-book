@@ -1,44 +1,57 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { WifiOff, RefreshCw } from "lucide-react";
+import Link from "next/link";
 
 export default function OfflinePage() {
-  const handleRetry = () => {
-    window.location.reload();
-  };
-
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <Card className="w-full max-w-md text-center">
-        <CardHeader>
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
-            <WifiOff className="h-8 w-8 text-muted-foreground" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full text-center">
+        <div className="mb-8">
+          <div className="mx-auto h-24 w-24 text-gray-400 mb-4">
+            <svg
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.25a9.75 9.75 0 100 19.5 9.75 9.75 0 000-19.5z"
+              />
+            </svg>
           </div>
-          <CardTitle>You&apos;re Offline</CardTitle>
-          <CardDescription>
-            It looks like you&apos;ve lost your internet connection. Some
-            features may not be available.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-muted-foreground">
-            Don&apos;t worry! You can still browse previously loaded content.
-            We&apos;ll automatically reconnect when your connection is restored.
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            You&apos;re Offline
+          </h1>
+          <p className="text-gray-600">
+            It looks like you&apos;re not connected to the internet. Please
+            check your connection and try again.
           </p>
-          <Button onClick={handleRetry} className="w-full">
-            <RefreshCw className="h-4 w-4 mr-2" />
+        </div>
+
+        <div className="space-y-4">
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full bg-primary-600 text-white px-4 py-2 rounded-lg hover:bg-primary-700 transition-colors"
+          >
             Try Again
-          </Button>
-        </CardContent>
-      </Card>
+          </button>
+
+          <Link
+            href="/"
+            className="block w-full bg-gray-200 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-300 transition-colors"
+          >
+            Go Home
+          </Link>
+        </div>
+
+        <div className="mt-8 text-sm text-gray-500">
+          <p>TrainBook works offline for basic features.</p>
+          <p>Some features may be limited without internet connection.</p>
+        </div>
+      </div>
     </div>
   );
 }

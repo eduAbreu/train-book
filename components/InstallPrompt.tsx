@@ -97,7 +97,7 @@ export function InstallPrompt() {
           </Button>
         </div>
         <CardDescription>
-          Install StudioBook for a better experience with offline access and
+          Install TrainBook for a better experience with offline access and
           quick launch.
         </CardDescription>
       </CardHeader>
