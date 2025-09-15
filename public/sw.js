@@ -1,4 +1,4 @@
-const CACHE_NAME = "studio-booking-v1";
+const CACHE_NAME = "trainbook-v1";
 const STATIC_CACHE_URLS = [
   "/",
   "/offline",
@@ -17,6 +17,11 @@ self.addEventListener("install", (event) => {
         return cache.addAll(STATIC_CACHE_URLS);
       })
       .then(() => {
+        return self.skipWaiting();
+      })
+      .catch((error) => {
+        console.error("Service Worker install failed:", error);
+        // Continue with installation even if caching fails
         return self.skipWaiting();
       })
   );
@@ -45,15 +50,32 @@ self.addEventListener("activate", (event) => {
 // Fetch event - serve from cache with network fallback
 self.addEventListener("fetch", (event) => {
   const { request } = event;
-  const url = new URL(request.url);
 
-  // Handle navigation requests
-  if (request.mode === "navigate") {
-    event.respondWith(
-      fetch(request).catch(() => {
-        return caches.match("/offline");
-      })
-    );
+  // Skip non-GET requests
+  if (request.method !== "GET") {
+    return;
+  }
+
+  try {
+    const url = new URL(request.url);
+
+    // Handle navigation requests
+    if (request.mode === "navigate") {
+      event.respondWith(
+        fetch(request).catch(() => {
+          return caches.match("/offline").catch(() => {
+            // If offline page is not cached, return a basic response
+            return new Response("Offline", {
+              status: 503,
+              headers: { "Content-Type": "text/plain" },
+            });
+          });
+        })
+      );
+      return;
+    }
+  } catch (error) {
+    console.error("Service Worker fetch error:", error);
     return;
   }
 
