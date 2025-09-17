@@ -2,8 +2,9 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,15 +16,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createClient } from "@/libs/supabase/client";
+import { createGym } from "@/features/gym/actions";
+import { ImageUpload } from "@/components/gym/ImageUpload";
+import { GymMessages, type ImageUploadResult } from "@/types/gym";
+import { log } from "@/libs/log";
 
-interface Gym {
-  id: string;
-  name: string;
-  location: string;
-  email: string;
-  phone: string;
-  description?: string;
-  ownerId: string;
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  const messages = GymMessages.en;
+
+  return (
+    <Button type="submit" className="w-full" disabled={pending}>
+      {pending ? messages.LOADING : messages.CREATE_GYM}
+    </Button>
+  );
 }
 
 export default function SetupGymOnboarding() {
@@ -32,71 +39,100 @@ export default function SetupGymOnboarding() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string | undefined>();
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  const messages = GymMessages.en;
+
   useEffect(() => {
-    const session = localStorage.getItem("booking-session");
-    if (!session) {
-      router.push("/");
-      return;
-    }
+    const checkAuth = async () => {
+      try {
+        const supabase = createClient();
+        const {
+          data: { user },
+          error,
+        } = await supabase.auth.getUser();
 
-    const user = JSON.parse(session);
-    if (user.role !== "owner") {
-      router.push("/");
-      return;
-    }
+        if (error || !user) {
+          log.error("Auth check failed", { error: error?.message });
+          router.push("/signin/owner");
+          return;
+        }
 
-    if (user.onboardingCompleted) {
-      router.push("/owner/dashboard");
-    }
+        // Check if user is an owner
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role, onboarding_completed, gym_id")
+          .eq("id", user.id)
+          .single();
+
+        if (!profile || profile.role !== "owner") {
+          log.error("User is not an owner", {
+            userId: user.id,
+            role: profile?.role,
+          });
+          router.push("/");
+          return;
+        }
+
+        if (profile.onboarding_completed || profile.gym_id) {
+          log.info("User already completed onboarding", { userId: user.id });
+          router.push("/dashboard");
+          return;
+        }
+      } catch (error) {
+        log.error("Error checking auth", { error });
+        router.push("/signin/owner");
+      }
+    };
+
+    checkAuth();
   }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const handleSubmit = (formData: FormData) => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        // Add image URLs to form data if they exist
+        if (logoUrl) {
+          formData.append("logo_url", logoUrl);
+        }
 
-    try {
-      const session = localStorage.getItem("booking-session");
-      if (!session) throw new Error("No session found");
+        await createGym(formData);
+        // Server action will redirect on success
+      } catch (err) {
+        const errorMessage =
+          err instanceof Error ? err.message : "An error occurred";
+        setError(errorMessage);
+        log.error("Gym creation failed", { error: errorMessage });
+      }
+    });
+  };
 
-      const user = JSON.parse(session);
+  console.log("logoUrl", logoUrl);
 
-      // Create gym
-      const newGym: Gym = {
-        id: Date.now().toString(),
-        name,
-        location,
-        email,
-        phone,
-        description,
-        ownerId: user.id,
-      };
-
-      // Save gym to localStorage
-      const existingGyms = JSON.parse(
-        localStorage.getItem("booking-gyms") || "[]"
-      );
-      existingGyms.push(newGym);
-      localStorage.setItem("booking-gyms", JSON.stringify(existingGyms));
-
-      // Update user onboarding status
-      user.onboardingCompleted = true;
-      user.gymId = newGym.id;
-      localStorage.setItem("booking-session", JSON.stringify(user));
-
-      router.push("/owner/dashboard");
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
+  const handleLogoUpload = (result: ImageUploadResult) => {
+    if (result.success) {
+      setLogoUrl(result.url);
+      if (result.error) {
+        setError(result.error);
+      }
+    } else {
+      setError(result.error || "Failed to upload logo");
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem("booking-session");
-    router.push("/");
+  const handleLogout = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+      router.push("/");
+    } catch (error) {
+      log.error("Logout error", { error });
+      router.push("/");
+    }
   };
 
   return (
@@ -110,75 +146,104 @@ export default function SetupGymOnboarding() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Setup Your Studio</CardTitle>
+            <CardTitle>Setup Your Gym</CardTitle>
             <CardDescription>
-              Let&apos;s get your studio ready for bookings
+              Let&apos;s get your gym ready for bookings
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+              <div
+                className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm"
+                role="alert"
+                aria-live="polite"
+              >
+                {error}
+              </div>
+            )}
+
+            <form action={handleSubmit} className="space-y-6">
               <div className="space-y-2">
-                <Label htmlFor="studio-name">Studio Name *</Label>
+                <Label htmlFor="name">{messages.GYM_NAME_LABEL} *</Label>
                 <Input
-                  id="studio-name"
+                  id="name"
+                  name="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g., FitZone Studio"
+                  placeholder={messages.GYM_NAME_PLACEHOLDER}
                   required
+                  aria-describedby={error ? "error-message" : undefined}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="location">Location *</Label>
+                <Label htmlFor="location">{messages.LOCATION_LABEL} *</Label>
                 <Input
                   id="location"
+                  name="location"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
-                  placeholder="e.g., 123 Main St, City, State"
+                  placeholder={messages.LOCATION_PLACEHOLDER}
                   required
+                  aria-describedby={error ? "error-message" : undefined}
                 />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="studio-email">Email *</Label>
+                  <Label htmlFor="email">{messages.EMAIL_LABEL} *</Label>
                   <Input
-                    id="studio-email"
+                    id="email"
+                    name="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="studio@example.com"
+                    placeholder={messages.EMAIL_PLACEHOLDER}
                     required
+                    aria-describedby={error ? "error-message" : undefined}
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone *</Label>
+                  <Label htmlFor="phone">{messages.PHONE_LABEL}</Label>
                   <Input
                     id="phone"
+                    name="phone"
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    placeholder="+1 (555) 123-4567"
-                    required
+                    placeholder={messages.PHONE_PLACEHOLDER}
+                    aria-describedby={error ? "error-message" : undefined}
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description (Optional)</Label>
+                <Label htmlFor="description">
+                  {messages.DESCRIPTION_LABEL}
+                </Label>
                 <Textarea
                   id="description"
+                  name="description"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Tell students about your studio..."
+                  placeholder={messages.DESCRIPTION_PLACEHOLDER}
                   rows={4}
+                  aria-describedby={error ? "error-message" : undefined}
                 />
               </div>
 
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Creating Studio..." : "Create Studio"}
-              </Button>
+              {/* Image Uploads */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <ImageUpload
+                  label={messages.LOGO_LABEL}
+                  type="logo"
+                  onUpload={handleLogoUpload}
+                  disabled={isPending}
+                />
+              </div>
+
+              <SubmitButton />
             </form>
           </CardContent>
         </Card>

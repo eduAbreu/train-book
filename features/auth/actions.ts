@@ -200,7 +200,7 @@ export async function ownerSignUp(formData: FormData): Promise<AuthResult> {
 
     // Check if owner already has a gym
     const hasGym = await checkOwnerGym(authData.user.id);
-    redirectTo = hasGym ? "/dashboard" : "/onboarding/gym";
+    redirectTo = hasGym ? "/dashboard" : "/onboarding/setup-gym";
 
     log.info("Owner signup successful", {
       userId: authData.user.id,
@@ -285,8 +285,8 @@ export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
 
     // Check if owner has a gym
     const hasGym = await checkOwnerGym(authData.user.id);
-    redirectTo = hasGym ? "/dashboard" : "/onboarding/gym";
-    // const redirectTo = hasGym ? "/dashboard" : "/onboarding/gym";
+    redirectTo = hasGym ? "/dashboard" : "/onboarding/setup-gym";
+    // const redirectTo = hasGym ? "/dashboard" : "/onboarding/setup-gym";
 
     log.info("Owner signin successful", {
       userId: authData.user.id,
