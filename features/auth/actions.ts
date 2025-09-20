@@ -200,7 +200,6 @@ export async function ownerSignUp(formData: FormData): Promise<AuthResult> {
 
     // Check if owner already has a gym
     const hasGym = await checkOwnerGym(authData.user.id);
-    redirectTo = hasGym ? "/dashboard" : "/onboarding/setup-gym";
 
     log.info("Owner signup successful", {
       userId: authData.user.id,
@@ -215,14 +214,13 @@ export async function ownerSignUp(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect(redirectTo);
+  redirect("/dashboard");
 }
 
 /**
  * Owner Sign In
  */
 export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
-  let redirectTo = "/dashboard";
   try {
     const rawData = {
       email: formData.get("email") as string,
@@ -285,8 +283,6 @@ export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
 
     // Check if owner has a gym
     const hasGym = await checkOwnerGym(authData.user.id);
-    redirectTo = hasGym ? "/dashboard" : "/onboarding/setup-gym";
-    // const redirectTo = hasGym ? "/dashboard" : "/onboarding/setup-gym";
 
     log.info("Owner signin successful", {
       userId: authData.user.id,
@@ -303,7 +299,7 @@ export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect(redirectTo);
+  redirect("/dashboard");
 }
 
 /**
@@ -389,14 +385,13 @@ export async function studentSignUp(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect("/onboarding/choose-gym");
+  redirect("/dashboard");
 }
 
 /**
  * Student Sign In
  */
 export async function studentSignIn(formData: FormData): Promise<AuthResult> {
-  let redirectTo = "/dashboard";
   try {
     const rawData = {
       email: formData.get("email") as string,
@@ -462,7 +457,6 @@ export async function studentSignIn(formData: FormData): Promise<AuthResult> {
 
     // Check if student has a gym membership
     const hasMembership = await checkStudentMembership(authData.user.id);
-    redirectTo = hasMembership ? "/dashboard" : "/onboarding/choose-gym";
 
     log.info("Student signin successful", {
       userId: authData.user.id,
@@ -479,5 +473,5 @@ export async function studentSignIn(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect(redirectTo);
+  redirect("/dashboard");
 }
