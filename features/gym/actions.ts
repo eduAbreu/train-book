@@ -13,7 +13,6 @@ import {
   type Gym,
   type GymSettings,
 } from "@/types/gym";
-import { redirect } from "next/navigation";
 
 /**
  * Helper function to get localized error message
@@ -253,6 +252,11 @@ export async function createGym(
       userId: user.id,
       gymName: gym.name,
     });
+
+    return {
+      success: true,
+      redirectTo: "/dashboard",
+    };
   } catch (error) {
     log.error("Gym creation error", { error });
     return {
@@ -260,8 +264,6 @@ export async function createGym(
       error: "An unexpected error occurred",
     };
   }
-
-  redirect("/dashboard");
 }
 
 /**

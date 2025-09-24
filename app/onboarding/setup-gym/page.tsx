@@ -21,6 +21,7 @@ import { createGym } from "@/features/gym/actions";
 import { ImageUpload } from "@/components/gym/ImageUpload";
 import { GymMessages, type ImageUploadResult } from "@/types/gym";
 import { log } from "@/libs/log";
+import { useAuth } from "@/provider/AuthProvider";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -43,53 +44,27 @@ export default function SetupGymOnboarding() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const {
+    isAuthenticated,
+    isOwner,
+    hasCompletedOnboarding,
+    hasGym,
+    isFetched,
+  } = useAuth();
 
   const messages = GymMessages.en;
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const supabase = createClient();
-        const {
-          data: { user },
-          error,
-        } = await supabase.auth.getUser();
+    if (isFetched && (!isAuthenticated || !isOwner)) {
+      router.push("/");
+    }
+  }, [isAuthenticated, isOwner, router, isFetched]);
 
-        if (error || !user) {
-          log.error("Auth check failed", { error: error?.message });
-          router.push("/signin/owner");
-          return;
-        }
-
-        // Check if user is an owner
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role, onboarding_completed, gym_id")
-          .eq("id", user.id)
-          .single();
-
-        if (!profile || profile.role !== "owner") {
-          log.error("User is not an owner", {
-            userId: user.id,
-            role: profile?.role,
-          });
-          router.push("/");
-          return;
-        }
-
-        if (profile.onboarding_completed || profile.gym_id) {
-          log.info("User already completed onboarding", { userId: user.id });
-          router.push("/dashboard");
-          return;
-        }
-      } catch (error) {
-        log.error("Error checking auth", { error });
-        router.push("/signin/owner");
-      }
-    };
-
-    checkAuth();
-  }, [router]);
+  useEffect(() => {
+    if (isFetched && hasCompletedOnboarding && hasGym) {
+      router.push("/dashboard/owner");
+    }
+  }, [hasCompletedOnboarding, hasGym, router, isFetched]);
 
   const handleSubmit = (formData: FormData) => {
     setError(null);
@@ -100,7 +75,14 @@ export default function SetupGymOnboarding() {
           formData.append("logo_url", logoUrl);
         }
 
-        await createGym(formData);
+        await createGym(formData).then((result) => {
+          if (result.success) {
+            router.push("/dashboard");
+          }
+          if (result.error) {
+            setError(result.error);
+          }
+        });
         // Server action will redirect on success
       } catch (err) {
         const errorMessage =
@@ -111,7 +93,8 @@ export default function SetupGymOnboarding() {
     });
   };
 
-  console.log("logoUrl", logoUrl);
+  console.log("---logoUrl", logoUrl);
+  console.log("---error", error);
 
   const handleLogoUpload = (result: ImageUploadResult) => {
     if (result.success) {

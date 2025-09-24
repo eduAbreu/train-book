@@ -132,7 +132,6 @@ async function createUserProfile(
  * Owner Sign Up
  */
 export async function ownerSignUp(formData: FormData): Promise<AuthResult> {
-  let redirectTo = "/dashboard";
   try {
     const rawData = {
       email: formData.get("email") as string,
@@ -201,6 +200,7 @@ export async function ownerSignUp(formData: FormData): Promise<AuthResult> {
     // Check if owner already has a gym
     const hasGym = await checkOwnerGym(authData.user.id);
 
+    console.log("---hasGym", hasGym);
     log.info("Owner signup successful", {
       userId: authData.user.id,
       email,
@@ -214,13 +214,18 @@ export async function ownerSignUp(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect("/dashboard");
+  return {
+    success: true,
+    redirectTo: "/onboarding/setup-gym",
+  };
 }
 
 /**
  * Owner Sign In
  */
 export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
+  // Default to final destination to avoid an extra hop that can race with session propagation
+  let redirectTo = "/dashboard/owner";
   try {
     const rawData = {
       email: formData.get("email") as string,
@@ -283,6 +288,9 @@ export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
 
     // Check if owner has a gym
     const hasGym = await checkOwnerGym(authData.user.id);
+    if (!hasGym) {
+      redirectTo = "/onboarding/setup-gym";
+    }
 
     log.info("Owner signin successful", {
       userId: authData.user.id,
@@ -290,7 +298,10 @@ export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
       hasGym,
     });
 
-    // Redirect based on gym status
+    return {
+      success: true,
+      redirectTo,
+    };
   } catch (error) {
     log.error("Owner signin error", { error });
     return {
@@ -298,8 +309,6 @@ export async function ownerSignIn(formData: FormData): Promise<AuthResult> {
       error: "An unexpected error occurred",
     };
   }
-
-  redirect("/dashboard");
 }
 
 /**
@@ -385,13 +394,18 @@ export async function studentSignUp(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect("/dashboard");
+  return {
+    success: true,
+    redirectTo: "/onboarding/choose-gym",
+  };
 }
 
 /**
  * Student Sign In
  */
 export async function studentSignIn(formData: FormData): Promise<AuthResult> {
+  // Default to final destination to avoid an extra hop that can race with session propagation
+  let redirectTo = "/dashboard/student";
   try {
     const rawData = {
       email: formData.get("email") as string,
@@ -457,6 +471,9 @@ export async function studentSignIn(formData: FormData): Promise<AuthResult> {
 
     // Check if student has a gym membership
     const hasMembership = await checkStudentMembership(authData.user.id);
+    if (!hasMembership) {
+      redirectTo = "/onboarding/choose-gym";
+    }
 
     log.info("Student signin successful", {
       userId: authData.user.id,
@@ -473,5 +490,8 @@ export async function studentSignIn(formData: FormData): Promise<AuthResult> {
     };
   }
 
-  redirect("/dashboard");
+  return {
+    success: true,
+    redirectTo,
+  };
 }

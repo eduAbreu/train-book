@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AuthMessages, type UserRole, type Locale } from "@/types/auth";
+import { useRouter } from "next/navigation";
 
 interface AuthFormProps {
   role: UserRole;
@@ -49,6 +50,7 @@ export default function AuthForm({
   signInAction,
   locale = "en",
 }: AuthFormProps) {
+  const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -56,20 +58,30 @@ export default function AuthForm({
   const messages = AuthMessages[locale];
   const roleLabel = role === "owner" ? "Gym Owner" : "Student";
 
-  console.log("----role", role);
-  console.log("----isLogin", isLogin);
   const handleSubmit = (formData: FormData) => {
-    console.log("----formData handleSubmit", formData, isLogin);
-    console.debug("----formData handleSubmit", formData, isLogin);
     setError(null);
-    console.log("----formData handleSubmit", formData, isLogin);
     startTransition(async () => {
       try {
-        console.log("----formData isLogin", formData, isLogin);
         if (isLogin) {
-          await signInAction(formData);
+          await signInAction(formData).then((result) => {
+            if (result.success) {
+              router.replace(result.redirectTo);
+              router.refresh();
+            }
+            if (result.error) {
+              setError(result.error);
+            }
+          });
         } else {
-          await signUpAction(formData);
+          await signUpAction(formData).then((result) => {
+            if (result.success) {
+              router.replace(result.redirectTo);
+              router.refresh();
+            }
+            if (result.error) {
+              setError(result.error);
+            }
+          });
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "An error occurred");
