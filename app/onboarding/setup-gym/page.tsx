@@ -93,9 +93,6 @@ export default function SetupGymOnboarding() {
     });
   };
 
-  console.log("---logoUrl", logoUrl);
-  console.log("---error", error);
-
   const handleLogoUpload = (result: ImageUploadResult) => {
     if (result.success) {
       setLogoUrl(result.url);
@@ -119,118 +116,114 @@ export default function SetupGymOnboarding() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-4">
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-end">
-          <Button variant="outline" onClick={handleLogout}>
-            Logout
-          </Button>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Setup Your Gym</CardTitle>
-            <CardDescription>
-              Let&apos;s get your gym ready for bookings
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {error && (
-              <div
-                className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm"
-                role="alert"
-                aria-live="polite"
-              >
-                {error}
-              </div>
-            )}
-
-            <form action={handleSubmit} className="space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">{messages.GYM_NAME_LABEL} *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder={messages.GYM_NAME_PLACEHOLDER}
-                  required
-                  aria-describedby={error ? "error-message" : undefined}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="location">{messages.LOCATION_LABEL} *</Label>
-                <Input
-                  id="location"
-                  name="location"
-                  value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder={messages.LOCATION_PLACEHOLDER}
-                  required
-                  aria-describedby={error ? "error-message" : undefined}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="email">{messages.EMAIL_LABEL} *</Label>
-                  <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder={messages.EMAIL_PLACEHOLDER}
-                    required
-                    aria-describedby={error ? "error-message" : undefined}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="phone">{messages.PHONE_LABEL}</Label>
-                  <Input
-                    id="phone"
-                    name="phone"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder={messages.PHONE_PLACEHOLDER}
-                    aria-describedby={error ? "error-message" : undefined}
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">
-                  {messages.DESCRIPTION_LABEL}
-                </Label>
-                <Textarea
-                  id="description"
-                  name="description"
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder={messages.DESCRIPTION_PLACEHOLDER}
-                  rows={4}
-                  aria-describedby={error ? "error-message" : undefined}
-                />
-              </div>
-
-              {/* Image Uploads */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <ImageUpload
-                  label={messages.LOGO_LABEL}
-                  type="logo"
-                  onUpload={handleLogoUpload}
-                  disabled={isPending}
-                />
-              </div>
-
-              <SubmitButton />
-            </form>
-          </CardContent>
-        </Card>
+    <>
+      <div className="flex items-center justify-end">
+        <Button variant="outline" onClick={handleLogout}>
+          Logout
+        </Button>
       </div>
-    </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Setup Your Gym</CardTitle>
+          <CardDescription>
+            Let&apos;s get your gym ready for bookings
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {error && (
+            <div
+              className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm"
+              role="alert"
+              aria-live="polite"
+            >
+              {error}
+            </div>
+          )}
+
+          <form action={handleSubmit} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">{messages.GYM_NAME_LABEL} *</Label>
+              <Input
+                id="name"
+                name="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={messages.GYM_NAME_PLACEHOLDER}
+                required
+                aria-describedby={error ? "error-message" : undefined}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">{messages.LOCATION_LABEL} *</Label>
+              <Input
+                id="location"
+                name="location"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder={messages.LOCATION_PLACEHOLDER}
+                required
+                aria-describedby={error ? "error-message" : undefined}
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">{messages.EMAIL_LABEL} *</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={messages.EMAIL_PLACEHOLDER}
+                  required
+                  aria-describedby={error ? "error-message" : undefined}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="phone">{messages.PHONE_LABEL}</Label>
+                <Input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder={messages.PHONE_PLACEHOLDER}
+                  aria-describedby={error ? "error-message" : undefined}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description">{messages.DESCRIPTION_LABEL}</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder={messages.DESCRIPTION_PLACEHOLDER}
+                rows={4}
+                aria-describedby={error ? "error-message" : undefined}
+              />
+            </div>
+
+            {/* Image Uploads */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <ImageUpload
+                label={messages.LOGO_LABEL}
+                type="logo"
+                onUpload={handleLogoUpload}
+                disabled={isPending}
+              />
+            </div>
+
+            <SubmitButton />
+          </form>
+        </CardContent>
+      </Card>
+    </>
   );
 }

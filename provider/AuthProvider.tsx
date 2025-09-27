@@ -65,7 +65,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       value={{
         user: user ?? null,
         loading: isLoading || profileLoading,
-        isFetched: isUserFetched && isProfileFetched,
+        isFetched: isUserFetched && (!!user ? isProfileFetched : true),
         profile: profile ?? null,
         isStudent: isStudent,
         isOwner: isOwner,

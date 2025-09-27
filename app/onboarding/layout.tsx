@@ -23,11 +23,9 @@ export default async function OnboardingLayout({
     redirect(config.auth.loginUrl);
   }
 
-  console.log("----user", user);
   return (
-    <>
-      <div>Hello {user.email}</div>
-      {children}
-    </>
+    <div className="min-h-screen bg-background p-4">
+      <div className="max-w-4xl mx-auto space-y-6">{children}</div>
+    </div>
   );
 }

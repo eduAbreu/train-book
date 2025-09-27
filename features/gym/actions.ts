@@ -426,3 +426,66 @@ export async function getGymWithSettings(gymId: string): Promise<{
     return null;
   }
 }
+
+/**
+ * Assign a gym to a student and complete onboarding
+ */
+export async function joinGym(gymId: string): Promise<{
+  success: boolean;
+  error?: string;
+  redirectTo?: string;
+}> {
+  try {
+    const supabase = await createClient();
+
+    // Validate session
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: "Authentication required" };
+    }
+
+    // Ensure user is a student
+    const { data: profile, error: profileError } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single();
+
+    if (profileError || !profile || profile.role !== "student") {
+      return { success: false, error: "Only students can join a gym" };
+    }
+
+    // Ensure gym exists and is active
+    const { data: gym, error: gymError } = await supabase
+      .from("gyms")
+      .select("id, is_active")
+      .eq("id", gymId)
+      .single();
+
+    if (gymError || !gym) {
+      return { success: false, error: "Gym not found" };
+    }
+
+    if (gym.is_active === false) {
+      return { success: false, error: "This gym is not accepting members" };
+    }
+
+    // Update student's profile
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ gym_id: gymId, onboarding_completed: true })
+      .eq("id", user.id);
+
+    if (updateError) {
+      return { success: false, error: "Failed to join gym" };
+    }
+
+    return { success: true, redirectTo: "/dashboard/student" };
+  } catch (error) {
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
