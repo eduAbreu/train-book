@@ -182,7 +182,7 @@ export default function ChooseGymOnboarding() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-muted-foreground text-center">
-              No gyms found matching "{searchQuery}"
+              No gyms found matching &quot;{searchQuery}&quot;
             </p>
             <Button variant="outline" onClick={clearSearch} className="mt-4">
               Clear search
