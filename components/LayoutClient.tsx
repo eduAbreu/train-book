@@ -9,6 +9,7 @@ import NextTopLoader from "nextjs-toploader";
 import { Toaster } from "react-hot-toast";
 import { Tooltip } from "react-tooltip";
 import config from "@/config";
+import QueryProvider from "@/components/QueryProvider";
 
 // Crisp customer chat support:
 // This component is separated from ClientLayout because it needs to be wrapped with <SessionProvider> to use useSession() hook
@@ -16,7 +17,7 @@ const CrispChat = (): null => {
   const pathname = usePathname();
 
   const supabase = createClient();
-  const [data, setData] = useState<{ user: User }>(null);
+  const [data, setData] = useState<{ user: User } | null>(null);
 
   // This is used to get the user data from Supabase Auth (if logged in) => user ID is used to identify users in Crisp
   useEffect(() => {
@@ -73,7 +74,7 @@ const ClientLayout = ({ children }: { children: ReactNode }) => {
       <NextTopLoader color={config.colors.main} showSpinner={false} />
 
       {/* Content inside app/page.js files  */}
-      {children}
+      <QueryProvider>{children}</QueryProvider>
 
       {/* Show Success/Error messages anywhere from the app with toast() */}
       <Toaster

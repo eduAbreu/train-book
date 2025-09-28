@@ -1,17 +1,40 @@
-import ButtonAccount from "@/components/ButtonAccount";
+/**
+ * Dashboard - server-side role router
+ * Redirects to /dashboard/owner or /dashboard/student based on profile.role
+ */
 
+import { redirect } from "next/navigation";
+import { createClient } from "@/libs/supabase/server";
 export const dynamic = "force-dynamic";
 
-// This is a private page: It's protected by the layout.js component which ensures the user is authenticated.
-// It's a server compoment which means you can fetch data (like the user profile) before the page is rendered.
-// See https://shipfa.st/docs/tutorials/private-page
 export default async function Dashboard() {
-  return (
-    <main className="min-h-screen p-8 pb-24">
-      <section className="max-w-xl mx-auto space-y-8">
-        <ButtonAccount />
-        <h1 className="text-3xl md:text-4xl font-extrabold">Private Page</h1>
-      </section>
-    </main>
-  );
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/");
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile) {
+    redirect("/");
+  }
+
+  if (profile.role === "owner") {
+    redirect("/dashboard/owner");
+  }
+
+  if (profile.role === "student") {
+    redirect("/dashboard/student");
+  }
+
+  redirect("/");
 }

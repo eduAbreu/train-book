@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/libs/supabase/server";
-import config from "@/config";
+import ClientAuthBoundary from "./ClientAuthBoundary";
 
 // This is a server-side component to ensure the user is logged in.
 // If not, it will redirect to the login page.
@@ -20,8 +20,8 @@ export default async function LayoutPrivate({
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(config.auth.loginUrl);
+    redirect("/");
   }
 
-  return <>{children}</>;
+  return <ClientAuthBoundary>{children}</ClientAuthBoundary>;
 }
