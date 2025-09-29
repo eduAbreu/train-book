@@ -1,7 +1,6 @@
 "use client";
 
 import type React from "react";
-
 import { useState, useEffect, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useFormStatus } from "react-dom";
@@ -16,12 +15,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { createClient } from "@/libs/supabase/client";
 import { createGym } from "@/features/gym/actions";
 import { ImageUpload } from "@/components/gym/ImageUpload";
 import { GymMessages, type ImageUploadResult } from "@/types/gym";
 import { log } from "@/libs/log";
 import { useAuth } from "@/provider/AuthProvider";
+import { LogoutButton } from "@/components/LogoutButton";
+import { useQueryClient } from "@tanstack/react-query";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -35,6 +35,7 @@ function SubmitButton() {
 }
 
 export default function SetupGymOnboarding() {
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [location, setLocation] = useState("");
   const [email, setEmail] = useState("");
@@ -78,6 +79,7 @@ export default function SetupGymOnboarding() {
         await createGym(formData).then((result) => {
           if (result.success) {
             router.push("/dashboard");
+            queryClient.invalidateQueries({ queryKey: ["profile"] });
           }
           if (result.error) {
             setError(result.error);
@@ -104,24 +106,9 @@ export default function SetupGymOnboarding() {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push("/");
-    } catch (error) {
-      log.error("Logout error", { error });
-      router.push("/");
-    }
-  };
-
   return (
     <>
-      <div className="flex items-center justify-end">
-        <Button variant="outline" onClick={handleLogout}>
-          Logout
-        </Button>
-      </div>
+      <LogoutButton />
 
       <Card>
         <CardHeader>

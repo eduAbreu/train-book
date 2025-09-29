@@ -8,12 +8,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Search, X } from "lucide-react";
 import { useAuth } from "@/provider/AuthProvider";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { createClient } from "@/libs/supabase/client";
 import { joinGym } from "@/features/gym/actions";
-import { log } from "@/libs/log";
 import { Gym } from "./types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LogoutButton } from "@/components/LogoutButton";
 
 async function fetchGyms() {
   const supabase = createClient();
@@ -26,6 +26,7 @@ async function fetchGyms() {
 }
 
 export default function ChooseGymOnboarding() {
+  const queryClient = useQueryClient();
   const [joiningId, setJoiningId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const router = useRouter();
@@ -71,6 +72,7 @@ export default function ChooseGymOnboarding() {
       // Refresh user/profile state via full navigation
       router.push(res.redirectTo || "/dashboard/student");
       router.refresh();
+      queryClient.invalidateQueries({ queryKey: ["profile"] });
     },
     onError: () => {
       setJoiningId(null);
@@ -98,24 +100,9 @@ export default function ChooseGymOnboarding() {
     setSearchQuery("");
   };
 
-  const handleLogout = async () => {
-    try {
-      const supabase = createClient();
-      await supabase.auth.signOut();
-      router.push("/");
-    } catch (error) {
-      log.error("Logout error", { error });
-      router.push("/");
-    }
-  };
-
   return (
     <>
-      <div className="flex items-center justify-end">
-        <Button variant="outline" onClick={handleLogout}>
-          Logout
-        </Button>
-      </div>
+      <LogoutButton />
 
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold">Choose Your Studio</h1>
