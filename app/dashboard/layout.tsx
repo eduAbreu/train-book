@@ -23,5 +23,9 @@ export default async function LayoutPrivate({
     redirect("/");
   }
 
-  return <ClientAuthBoundary>{children}</ClientAuthBoundary>;
+  return (
+    <ClientAuthBoundary>
+      <main className="min-h-screen p-8 pb-24">{children}</main>
+    </ClientAuthBoundary>
+  );
 }

@@ -489,3 +489,160 @@ export async function joinGym(gymId: string): Promise<{
     return { success: false, error: "An unexpected error occurred" };
   }
 }
+
+/**
+ * Update gym settings
+ */
+export async function updateGymSettings(
+  gymId: string,
+  settingsData: {
+    allow_waitlist: boolean;
+    cancel_limit_hours: number;
+  }
+): Promise<{
+  success: boolean;
+  error?: string;
+  settings?: any;
+}> {
+  try {
+    const supabase = await createClient();
+
+    // Validate session
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: "Authentication required" };
+    }
+
+    // Ensure user owns the gym
+    const { data: gym, error: gymError } = await supabase
+      .from("gyms")
+      .select("id, owner_id")
+      .eq("id", gymId)
+      .eq("owner_id", user.id)
+      .single();
+
+    if (gymError || !gym) {
+      return { success: false, error: "Gym not found or access denied" };
+    }
+
+    // Update gym settings
+    const { data: settings, error: settingsError } = await supabase
+      .from("gym_settings")
+      .update(settingsData)
+      .eq("gym_id", gymId)
+      .select()
+      .single();
+
+    if (settingsError) {
+      log.error("Error updating gym settings", {
+        gymId,
+        userId: user.id,
+        error: settingsError.message,
+      });
+      return { success: false, error: "Failed to update gym settings" };
+    }
+
+    log.info("Gym settings updated successfully", {
+      gymId,
+      userId: user.id,
+    });
+
+    return { success: true, settings };
+  } catch (error) {
+    log.error("Gym settings update error", { error });
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
+
+/**
+ * Close/deactivate a gym
+ */
+export async function closeGym(gymId: string): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  try {
+    const supabase = await createClient();
+
+    // Validate session
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return { success: false, error: "Authentication required" };
+    }
+
+    // Ensure user owns the gym
+    const { data: gym, error: gymError } = await supabase
+      .from("gyms")
+      .select("id, owner_id")
+      .eq("id", gymId)
+      .eq("owner_id", user.id)
+      .single();
+
+    if (gymError || !gym) {
+      return { success: false, error: "Gym not found or access denied" };
+    }
+
+    // Deactivate gym
+    const { error: updateError } = await supabase
+      .from("gyms")
+      .update({ is_active: false })
+      .eq("id", gymId);
+
+    if (updateError) {
+      log.error("Error closing gym", {
+        gymId,
+        userId: user.id,
+        error: updateError.message,
+      });
+      return { success: false, error: "Failed to close gym" };
+    }
+
+    // Remove gym_id from owner's profile
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ gym_id: null, onboarding_completed: false })
+      .eq("id", user.id);
+
+    if (profileError) {
+      log.error("Error updating owner profile after gym closure", {
+        gymId,
+        userId: user.id,
+        error: profileError.message,
+      });
+      // Continue anyway - gym is already closed
+    }
+
+    // Remove all students from this gym
+    const { error: studentsError } = await supabase
+      .from("profiles")
+      .update({ gym_id: null, onboarding_completed: false })
+      .eq("gym_id", gymId)
+      .neq("role", "owner");
+
+    if (studentsError) {
+      log.error("Error removing students from closed gym", {
+        gymId,
+        error: studentsError.message,
+      });
+      // Continue anyway - gym is already closed
+    }
+
+    log.info("Gym closed successfully", {
+      gymId,
+      userId: user.id,
+    });
+
+    return { success: true };
+  } catch (error) {
+    log.error("Gym closure error", { error });
+    return { success: false, error: "An unexpected error occurred" };
+  }
+}
