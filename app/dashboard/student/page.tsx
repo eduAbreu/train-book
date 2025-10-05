@@ -2,12 +2,14 @@
 
 import { useAuth } from "@/provider/AuthProvider";
 import ButtonAccount from "@/components/ButtonAccount";
+import Header from "../components/Header";
 
 export default function StudentDashboard() {
   const { user, isStudent, hasGym, hasCompletedOnboarding } = useAuth();
 
   return (
-    <main className="min-h-screen p-8 pb-24">
+    <>
+      <Header />
       <section className="max-w-4xl mx-auto space-y-8">
         <div className="flex justify-between items-center">
           <div>
@@ -18,7 +20,6 @@ export default function StudentDashboard() {
               Welcome back, {user?.user_metadata?.name || user?.email}!
             </p>
           </div>
-          <ButtonAccount />
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -128,6 +129,6 @@ export default function StudentDashboard() {
           </div>
         )}
       </section>
-    </main>
+    </>
   );
 }
