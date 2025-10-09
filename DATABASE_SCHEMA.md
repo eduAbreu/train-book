@@ -171,23 +171,23 @@ CREATE TABLE weekly_template_slots (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   gym_id UUID NOT NULL REFERENCES gyms(id) ON DELETE CASCADE,
   day TEXT NOT NULL CHECK (day IN ('Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun')),
-  start_time TIME NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL,
   duration_minutes INTEGER NOT NULL CHECK (duration_minutes > 0),
   class_type_id UUID NOT NULL REFERENCES class_types(id) ON DELETE CASCADE,
   capacity INTEGER NOT NULL CHECK (capacity > 0),
   instructor TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT check_same_day CHECK (DATE(start_time) = DATE(end_time))
 );
-
--- Computed column for end_time
-ALTER TABLE weekly_template_slots
-ADD COLUMN end_time TIME GENERATED ALWAYS AS (start_time + (duration_minutes || ' minutes')::INTERVAL) STORED;
 
 -- Indexes
 CREATE INDEX idx_weekly_slots_gym_id ON weekly_template_slots(gym_id);
 CREATE INDEX idx_weekly_slots_day ON weekly_template_slots(day);
 CREATE INDEX idx_weekly_slots_class_type ON weekly_template_slots(class_type_id);
+CREATE INDEX idx_weekly_slots_start_time ON weekly_template_slots(start_time);
+CREATE INDEX idx_weekly_slots_end_time ON weekly_template_slots(end_time);
 
 -- RLS Policies
 ALTER TABLE weekly_template_slots ENABLE ROW LEVEL SECURITY;
@@ -219,14 +219,15 @@ CREATE TABLE classes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   gym_id UUID NOT NULL REFERENCES gyms(id) ON DELETE CASCADE,
   date DATE NOT NULL,
-  start_time TIME NOT NULL,
-  end_time TIME NOT NULL,
+  start_time TIMESTAMP NOT NULL,
+  end_time TIMESTAMP NOT NULL,
   class_type_id UUID NOT NULL REFERENCES class_types(id) ON DELETE CASCADE,
   capacity INTEGER NOT NULL CHECK (capacity > 0),
   instructor TEXT,
   source_slot_id UUID REFERENCES weekly_template_slots(id) ON DELETE SET NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  CONSTRAINT check_same_day CHECK (DATE(start_time) = DATE(end_time))
 );
 
 -- Indexes
@@ -234,6 +235,8 @@ CREATE INDEX idx_classes_gym_id ON classes(gym_id);
 CREATE INDEX idx_classes_date ON classes(date);
 CREATE INDEX idx_classes_class_type ON classes(class_type_id);
 CREATE INDEX idx_classes_gym_date ON classes(gym_id, date);
+CREATE INDEX idx_classes_start_time ON classes(start_time);
+CREATE INDEX idx_classes_end_time ON classes(end_time);
 
 -- RLS Policies
 ALTER TABLE classes ENABLE ROW LEVEL SECURITY;
@@ -274,8 +277,8 @@ CREATE TABLE bookings (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   -- Prevent duplicate bookings
-  UNIQUE(class_id, user_id) WHERE user_id IS NOT NULL,
-  UNIQUE(class_id, guest_name, guest_email) WHERE participant = 'guest'
+  UNIQUE(class_id, user_id),
+  UNIQUE(class_id, guest_name, guest_email)
 );
 
 -- Indexes
@@ -284,6 +287,10 @@ CREATE INDEX idx_bookings_class_id ON bookings(class_id);
 CREATE INDEX idx_bookings_user_id ON bookings(user_id);
 CREATE INDEX idx_bookings_status ON bookings(status);
 CREATE INDEX idx_bookings_participant ON bookings(participant);
+
+-- Partial unique indexes for conditional constraints
+CREATE UNIQUE INDEX idx_bookings_unique_student ON bookings(class_id, user_id) WHERE user_id IS NOT NULL;
+CREATE UNIQUE INDEX idx_bookings_unique_guest ON bookings(class_id, guest_name, guest_email) WHERE participant = 'guest';
 
 -- RLS Policies
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
