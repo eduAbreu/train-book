@@ -131,7 +131,7 @@ export function ModalityFormDialog({
             <div className="space-y-0.5">
               <Label>Active Modality</Label>
               <p className="text-sm text-muted-foreground">
-                Inactive modalities won't appear in new schedules
+                Inactive modalities won&apos;t appear in new schedules
               </p>
             </div>
             <Switch

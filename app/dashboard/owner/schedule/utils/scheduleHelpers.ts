@@ -1,4 +1,4 @@
-import type { WeeklyTemplateSlot } from "@/types/schedule";
+import type { WeeklyTemplateSlot, ScheduleSlot } from "@/types/schedule";
 import type { ClassType } from "@/features/class-types/actions";
 import { dateToTimeString, timeStringToDate } from "@/lib/schedule";
 
@@ -16,21 +16,39 @@ interface WeeklyTemplate {
 }
 
 /**
- * Transform database slots to UI format
+ * Transform database slots to UI format (supports both new and legacy structures)
  */
 export function transformSlotsToTemplate(
-  weeklySlots: WeeklyTemplateSlot[]
+  slots: (WeeklyTemplateSlot | ScheduleSlot)[]
 ): WeeklyTemplate {
   const template: WeeklyTemplate = {};
+  const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  weeklySlots.forEach((slot: WeeklyTemplateSlot) => {
-    if (!template[slot.day]) {
-      template[slot.day] = [];
+  slots.forEach((slot) => {
+    let day: string;
+    let startTime: string;
+    let endTime: string;
+
+    // Check if it's a new ScheduleSlot or legacy WeeklyTemplateSlot
+    if ("day_of_week" in slot) {
+      // New ScheduleSlot structure
+      day = dayMap[slot.day_of_week];
+      startTime = slot.start_time;
+      endTime = slot.end_time;
+    } else {
+      // Legacy WeeklyTemplateSlot structure
+      day = slot.day;
+      startTime = dateToTimeString(new Date(slot.start_time));
+      endTime = dateToTimeString(new Date(slot.end_time));
     }
-    template[slot.day].push({
+
+    if (!template[day]) {
+      template[day] = [];
+    }
+    template[day].push({
       id: slot.id,
-      start: dateToTimeString(new Date(slot.start_time)),
-      end: dateToTimeString(new Date(slot.end_time)),
+      start: startTime,
+      end: endTime,
       classTypeId: slot.class_type_id,
       capacity: slot.capacity,
       instructor: slot.instructor,
@@ -125,4 +143,82 @@ export function hasTimeChanged(formData: any, originalSlot: any): boolean {
     Number(formData.durationMinutes) !== Number(originalSlot.duration_minutes);
 
   return startChanged || durationChanged;
+}
+
+/**
+ * Convert day string to day_of_week number
+ */
+export function dayStringToNumber(day: string): number {
+  const dayMap: { [key: string]: number } = {
+    Sun: 0,
+    Mon: 1,
+    Tue: 2,
+    Wed: 3,
+    Thu: 4,
+    Fri: 5,
+    Sat: 6,
+  };
+  return dayMap[day] ?? 1; // Default to Monday
+}
+
+/**
+ * Convert day_of_week number to day string
+ */
+export function dayNumberToString(dayOfWeek: number): string {
+  const dayMap = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  return dayMap[dayOfWeek] ?? "Mon";
+}
+
+/**
+ * Convert legacy WeeklyTemplateSlot to new ScheduleSlot format
+ */
+export function convertLegacyToNewSlot(
+  legacySlot: WeeklyTemplateSlot
+): ScheduleSlot {
+  return {
+    id: legacySlot.id,
+    gym_id: legacySlot.gym_id,
+    class_type_id: legacySlot.class_type_id,
+    day_of_week: dayStringToNumber(legacySlot.day),
+    start_time: dateToTimeString(new Date(legacySlot.start_time)),
+    end_time: dateToTimeString(new Date(legacySlot.end_time)),
+    duration_minutes: legacySlot.duration_minutes,
+    capacity: legacySlot.capacity,
+    instructor: legacySlot.instructor,
+    is_recurring: true,
+    recurrence_pattern: "weekly",
+    is_active: true,
+    created_at: legacySlot.created_at,
+    updated_at: legacySlot.updated_at,
+    class_type: legacySlot.class_type,
+  };
+}
+
+/**
+ * Convert new ScheduleSlot to legacy WeeklyTemplateSlot format
+ */
+export function convertNewToLegacySlot(
+  newSlot: ScheduleSlot
+): WeeklyTemplateSlot {
+  return {
+    id: newSlot.id,
+    gym_id: newSlot.gym_id,
+    day: dayNumberToString(newSlot.day_of_week) as
+      | "Mon"
+      | "Tue"
+      | "Wed"
+      | "Thu"
+      | "Fri"
+      | "Sat"
+      | "Sun",
+    start_time: new Date(`2000-01-01T${newSlot.start_time}`),
+    end_time: new Date(`2000-01-01T${newSlot.end_time}`),
+    duration_minutes: newSlot.duration_minutes,
+    class_type_id: newSlot.class_type_id,
+    class_type: newSlot.class_type,
+    capacity: newSlot.capacity,
+    instructor: newSlot.instructor,
+    created_at: newSlot.created_at,
+    updated_at: newSlot.updated_at,
+  };
 }

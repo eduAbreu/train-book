@@ -48,7 +48,8 @@ export function useScheduleForm(
     instructor: "",
   });
   const [selectedDays, setSelectedDays] = useState<string[]>([]);
-  const [conflictMode, setConflictMode] = useState<"skip" | "replace">("skip");
+  // Always use replace mode to avoid conflicts
+  const conflictMode = "replace";
 
   // Initialize form with default class type when class types are loaded
   useEffect(() => {
@@ -72,7 +73,6 @@ export function useScheduleForm(
       instructor: "",
     });
     setSelectedDays([]);
-    setConflictMode("skip");
     setIsDialogOpen(true);
   };
 
@@ -101,7 +101,6 @@ export function useScheduleForm(
       instructor: slot.instructor || "",
     });
     setSelectedDays([]);
-    setConflictMode("skip");
     setIsDialogOpen(true);
   };
 
@@ -240,7 +239,6 @@ export function useScheduleForm(
       instructor: "",
     });
     setSelectedDays([]);
-    setConflictMode("skip");
     setEditingSlot(null);
     setIsDialogOpen(false);
   };
@@ -260,7 +258,6 @@ export function useScheduleForm(
     resetForm,
     setIsDialogOpen,
     setFormData,
-    setConflictMode,
 
     // Computed values
     getComputedEnd,

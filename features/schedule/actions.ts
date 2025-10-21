@@ -1,5 +1,5 @@
 /**
- * Server Actions for weekly template slots management
+ * Server Actions for schedule slots management
  */
 
 "use server";
@@ -31,6 +31,59 @@ function hasTimeOverlap(
   return start1Time < end2Time && end1Time > start2Time;
 }
 
+export interface ScheduleSlot {
+  id: string;
+  gym_id: string;
+  class_type_id: string;
+  day_of_week: number; // 0=Sunday, 1=Monday, etc.
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  capacity: number;
+  instructor?: string;
+  is_recurring: boolean;
+  recurrence_pattern: "weekly" | "biweekly" | "monthly" | "none";
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  class_type?: {
+    id: string;
+    name: string;
+    emoji?: string;
+  };
+}
+
+export interface CreateSlotData {
+  class_type_id: string;
+  day_of_week: number;
+  start_time: string;
+  duration_minutes: number;
+  capacity: number;
+  instructor?: string;
+  is_recurring?: boolean;
+  recurrence_pattern?: "weekly" | "biweekly" | "monthly" | "none";
+  is_active?: boolean;
+}
+
+export interface UpdateSlotData {
+  class_type_id?: string;
+  day_of_week?: number;
+  start_time?: string;
+  duration_minutes?: number;
+  capacity?: number;
+  instructor?: string;
+  is_recurring?: boolean;
+  recurrence_pattern?: "weekly" | "biweekly" | "monthly" | "none";
+  is_active?: boolean;
+}
+
+export interface ApplySlotToDaysData {
+  slot: Omit<CreateSlotData, "day_of_week">;
+  days: number[]; // Array of day_of_week numbers (0-6)
+  mode: "skip" | "replace";
+}
+
+// Legacy interfaces for backward compatibility
 export interface WeeklyTemplateSlot {
   id: string;
   gym_id: string;
@@ -47,31 +100,6 @@ export interface WeeklyTemplateSlot {
   instructor?: string;
   created_at: string;
   updated_at: string;
-}
-
-export interface CreateSlotData {
-  day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-  start_time: Date;
-  duration_minutes: number;
-  class_type_id: string;
-  capacity: number;
-  instructor?: string;
-}
-
-export interface UpdateSlotData {
-  day?: "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun";
-  start_time?: Date;
-  end_time?: Date;
-  duration_minutes?: number;
-  class_type_id?: string;
-  capacity?: number;
-  instructor?: string;
-}
-
-export interface ApplySlotToDaysData {
-  slot: Omit<CreateSlotData, "day">;
-  days: Array<"Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Sat" | "Sun">;
-  mode: "skip" | "replace";
 }
 
 export interface ApplySlotResult {

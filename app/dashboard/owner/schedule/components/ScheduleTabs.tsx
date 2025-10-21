@@ -14,10 +14,16 @@ interface ScheduleTabsProps {
   activeDay: string;
   onDayChange: (day: string) => void;
   weeklyTemplate: { [key: string]: TimeSlot[] };
+  classesByDay?: { [key: string]: any[] };
+  scheduleSlots?: any[];
   getClassTypeName: (classTypeId: string) => string;
   onAddSlot: () => void;
   onEditSlot: (slot: TimeSlot) => void;
   onDeleteSlot: (slotId: string) => void;
+  onEditClass?: (classItem: any) => void;
+  onDeleteClass?: (classId: string) => void;
+  onViewBookings?: (classItem: any) => void;
+  onGenerateFromSlot?: (slot: any) => void;
 }
 
 const DAYS = [
@@ -34,10 +40,16 @@ export function ScheduleTabs({
   activeDay,
   onDayChange,
   weeklyTemplate,
+  classesByDay,
+  scheduleSlots,
   getClassTypeName,
   onAddSlot,
   onEditSlot,
   onDeleteSlot,
+  onEditClass,
+  onDeleteClass,
+  onViewBookings,
+  onGenerateFromSlot,
 }: ScheduleTabsProps) {
   return (
     <Tabs value={activeDay} onValueChange={onDayChange}>
@@ -54,10 +66,16 @@ export function ScheduleTabs({
           <DaySchedule
             day={day}
             weeklyTemplate={weeklyTemplate}
+            classes={classesByDay?.[day.key] || []}
+            scheduleSlots={scheduleSlots}
             getClassTypeName={getClassTypeName}
             onAddSlot={onAddSlot}
             onEditSlot={onEditSlot}
             onDeleteSlot={onDeleteSlot}
+            onEditClass={onEditClass}
+            onDeleteClass={onDeleteClass}
+            onViewBookings={onViewBookings}
+            onGenerateFromSlot={onGenerateFromSlot}
           />
         </TabsContent>
       ))}

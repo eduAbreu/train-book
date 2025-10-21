@@ -1,46 +1,111 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
+"use client";
+
+import { Card, CardContent } from "@/components/ui/card";
+import { Calendar, Clock, Users, TrendingUp } from "lucide-react";
 
 interface ScheduleOverviewProps {
-  weeklyTemplate: { [key: string]: any[] };
-  getSlotCount: (day: string) => number;
+  classes: any[];
+  scheduleSlots: any[];
 }
 
-const DAYS = [
-  { key: "Mon", label: "Monday" },
-  { key: "Tue", label: "Tuesday" },
-  { key: "Wed", label: "Wednesday" },
-  { key: "Thu", label: "Thursday" },
-  { key: "Fri", label: "Friday" },
-  { key: "Sat", label: "Saturday" },
-  { key: "Sun", label: "Sunday" },
-];
-
 export function ScheduleOverview({
-  weeklyTemplate,
-  getSlotCount,
+  classes,
+  scheduleSlots,
 }: ScheduleOverviewProps) {
+  // Calculate statistics
+  const activeSlots =
+    scheduleSlots?.filter((slot) => slot.is_active).length || 0;
+
+  // Classes for today
+  const today = new Date();
+  const todayClasses =
+    classes?.filter((classItem) => {
+      const classDate = new Date(classItem.date);
+      return classDate.toDateString() === today.toDateString();
+    }) || [];
+
+  // Classes for this week
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay());
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 6);
+
+  const weekClasses =
+    classes?.filter((classItem) => {
+      const classDate = new Date(classItem.date);
+      return classDate >= weekStart && classDate <= weekEnd;
+    }) || [];
+
+  // Upcoming classes (next 7 days)
+  const upcomingClasses =
+    classes?.filter((classItem) => {
+      const classDate = new Date(classItem.date);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(today.getDate() + 7);
+      return classDate > today && classDate <= nextWeek;
+    }) || [];
+
+  const stats = [
+    {
+      title: "Aulas Hoje",
+      value: todayClasses.length,
+      icon: Calendar,
+      color: "text-blue-600",
+      bgColor: "bg-blue-50",
+      borderColor: "border-blue-200",
+    },
+    {
+      title: "Esta Semana",
+      value: weekClasses.length,
+      icon: Clock,
+      color: "text-green-600",
+      bgColor: "bg-green-50",
+      borderColor: "border-green-200",
+    },
+    {
+      title: "Próximas 7 Dias",
+      value: upcomingClasses.length,
+      icon: TrendingUp,
+      color: "text-purple-600",
+      bgColor: "bg-purple-50",
+      borderColor: "border-purple-200",
+    },
+    {
+      title: "Horários Ativos",
+      value: activeSlots,
+      icon: Users,
+      color: "text-orange-600",
+      bgColor: "bg-orange-50",
+      borderColor: "border-orange-200",
+    },
+  ];
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <Calendar className="h-5 w-5" />
-          <span>Weekly Overview</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-7 gap-2">
-          {DAYS.map((day) => (
-            <div key={day.key} className="text-center p-2 border rounded">
-              <div className="text-sm font-medium">{day.label.slice(0, 3)}</div>
-              <div className="text-2xl font-bold text-primary">
-                {getSlotCount(day.key)}
+    <div className="space-y-6">
+      {/* Main Stats */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {stats.map((stat, index) => (
+          <Card key={index} className={`${stat.borderColor} ${stat.bgColor}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {stat.title}
+                  </p>
+                  <p className={`text-2xl font-bold ${stat.color}`}>
+                    {stat.value}
+                  </p>
+                </div>
+                <div
+                  className={`p-2 rounded-lg ${stat.bgColor} ${stat.borderColor}`}
+                >
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">classes</div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </div>
   );
 }
