@@ -75,8 +75,6 @@ export default function OwnerModalities() {
     data: classTypes,
     isLoading: classTypesLoading,
     error: classTypesError,
-    isFetched: isClassTypesFetched,
-    isSuccess: isClassTypesSuccess,
   } = useQuery({
     queryKey: ["class-types", profile?.gym_id],
     queryFn: async () => {
@@ -218,7 +216,7 @@ export default function OwnerModalities() {
             Access Denied
           </h2>
           <p className="text-red-600">
-            You don't have permission to access this page
+            You don&apos;t have permission to access this page
           </p>
         </div>
       </div>

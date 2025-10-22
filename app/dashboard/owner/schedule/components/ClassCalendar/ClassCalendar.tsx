@@ -26,7 +26,6 @@ export function ClassCalendar({
   onEditClass,
   onDeleteClass,
   onViewBookings,
-  isLoading = false,
 }: ClassCalendarProps) {
   const { selectedDate, setSelectedDate, selectedDateClasses, classesByDate } =
     useClassCalendar(classes);

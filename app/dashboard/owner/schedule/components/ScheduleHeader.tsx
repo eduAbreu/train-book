@@ -1,5 +1,3 @@
-import { Calendar } from "lucide-react";
-
 interface ScheduleHeaderProps {
   title?: string;
   description?: string;

@@ -354,7 +354,9 @@ export async function updateScheduleSlot(
     // Get the slot to verify ownership
     const { data: slot, error: slotError } = await supabase
       .from("schedule_slots")
-      .select("gym_id, gyms!inner(owner_id)")
+      .select(
+        "gym_id, day_of_week, start_time, end_time, duration_minutes, gyms!inner(owner_id)"
+      )
       .eq("id", slotId)
       .single();
 
@@ -363,7 +365,7 @@ export async function updateScheduleSlot(
     }
 
     // Ensure user is the gym owner
-    if (slot.gyms.owner_id !== user.id) {
+    if (slot.gyms[0]?.owner_id !== user.id) {
       return { success: false, error: "Access denied" };
     }
 
@@ -372,14 +374,8 @@ export async function updateScheduleSlot(
 
     // Calculate end time if start_time or duration_minutes changed
     if (data.start_time || data.duration_minutes) {
-      const { data: currentSlot } = await supabase
-        .from("schedule_slots")
-        .select("start_time, duration_minutes")
-        .eq("id", slotId)
-        .single();
-
-      const startTime = data.start_time || currentSlot.start_time;
-      const duration = data.duration_minutes || currentSlot.duration_minutes;
+      const startTime = data.start_time || slot.start_time;
+      const duration = data.duration_minutes || slot.duration_minutes;
 
       const startTimeDate = new Date(`2000-01-01T${startTime}`);
       const endTime = new Date(startTimeDate.getTime() + duration * 60000);
@@ -504,7 +500,7 @@ export async function deleteScheduleSlot(slotId: string): Promise<{
     }
 
     // Ensure user is the gym owner
-    if (slot.gyms.owner_id !== user.id) {
+    if (slot.gyms[0]?.owner_id !== user.id) {
       return { success: false, error: "Access denied" };
     }
 

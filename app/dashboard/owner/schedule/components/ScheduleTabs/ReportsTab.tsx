@@ -26,12 +26,7 @@ export function ReportsTab({
         </div>
       </div>
 
-      <ScheduleOverview
-        classes={classes}
-        scheduleSlots={scheduleSlots}
-        weeklyTemplate={weeklyTemplate}
-        getSlotCount={getSlotCount}
-      />
+      <ScheduleOverview classes={classes} scheduleSlots={scheduleSlots} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <Card>

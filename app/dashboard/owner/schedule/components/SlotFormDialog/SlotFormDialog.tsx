@@ -39,8 +39,6 @@ interface SlotFormDialogProps {
   selectedDays: string[];
   onDayToggle: (day: string, checked: boolean) => void;
   classTypes: ClassType[];
-  weeklyTemplate: { [key: string]: TimeSlot[] };
-  activeDay: string;
   onSave: () => void;
   onApplyToDays: () => void;
   isLoading?: boolean;
@@ -57,8 +55,6 @@ export function SlotFormDialog({
   selectedDays,
   onDayToggle,
   classTypes,
-  weeklyTemplate,
-  activeDay,
   onSave,
   onApplyToDays,
   isLoading,

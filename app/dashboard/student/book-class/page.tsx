@@ -24,8 +24,10 @@ import {
   createBooking,
   getClasses,
   getUserBookings,
+  type CreateBookingData,
+  type Class,
 } from "@/features/classes/actions";
-import type { Class, Booking, CreateBookingData } from "@/types/gym";
+import type { Booking } from "@/types/gym";
 import { ClassMessages } from "@/types/gym";
 
 const messages = ClassMessages.en;
@@ -55,24 +57,6 @@ export default function BookClassPage() {
       return;
     }
   }, [user, profile, router]);
-
-  // Show loading while checking authentication
-  if (!user || !profile || profile.role !== "student" || !profile.gym_id) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Header />
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold mb-2">Book a Class</h1>
-            <p className="text-muted-foreground">Loading...</p>
-          </div>
-          <div className="flex justify-center">
-            <Skeleton className="h-[400px] w-full max-w-md" />
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   const gymId = profile.gym_id;
 
@@ -148,7 +132,7 @@ export default function BookClassPage() {
 
     // Check for existing booking
     const existingBooking = bookings?.find(
-      (b: Booking) => b.class_id === classInstance.id && b.user_id === user.id
+      (b) => b.class_id === classInstance.id && b.user_id === user.id
     );
     if (existingBooking) {
       return { canBook: false, reason: messages.ALREADY_BOOKED };
@@ -194,7 +178,7 @@ export default function BookClassPage() {
     if (!bookings || !user) return null;
 
     const userBooking = bookings.find(
-      (b: Booking) => b.class_id === classInstance.id && b.user_id === user.id
+      (b) => b.class_id === classInstance.id && b.user_id === user.id
     );
 
     if (!userBooking) return null;
@@ -215,6 +199,24 @@ export default function BookClassPage() {
     classes?.filter(
       (classInstance) => classInstance.date === selectedDateStr
     ) || [];
+
+  // Show loading while checking authentication
+  if (!user || !profile || profile.role !== "student" || !profile.gym_id) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Header />
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold mb-2">Book a Class</h1>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+          <div className="flex justify-center">
+            <Skeleton className="h-[400px] w-full max-w-md" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (classesLoading || bookingsLoading) {
     return (

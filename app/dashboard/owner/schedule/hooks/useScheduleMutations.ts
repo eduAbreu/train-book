@@ -9,12 +9,6 @@ import {
   createSingleClass,
   createRecurringClasses,
 } from "@/features/schedule/actions-new";
-import {
-  createWeeklyTemplateSlot,
-  updateWeeklyTemplateSlot,
-  deleteWeeklyTemplateSlot,
-  applySlotToDays as applySlotToDaysLegacy,
-} from "@/features/schedule/actions";
 import { updateGymSettings } from "@/features/gym-settings/actions";
 import type {
   CreateSlotData,

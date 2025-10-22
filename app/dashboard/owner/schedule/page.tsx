@@ -43,7 +43,6 @@ export default function SchedulePage() {
   const {
     classTypes,
     scheduleSlots,
-    weeklySlots, // Legacy for backward compatibility
     classes,
     gymSettings,
     isLoading: dataLoading,
@@ -84,10 +83,9 @@ export default function SchedulePage() {
   // Transform database slots to UI format
   const weeklyTemplate: WeeklyTemplate = useMemo(() => {
     // Use new schedule slots if available, otherwise fall back to legacy
-    const slotsToUse = scheduleSlots || weeklySlots;
-    if (!slotsToUse) return {};
-    return transformSlotsToTemplate(slotsToUse);
-  }, [scheduleSlots, weeklySlots]);
+    if (!scheduleSlots) return {};
+    return transformSlotsToTemplate(scheduleSlots);
+  }, [scheduleSlots]);
 
   // Transform classes to UI format for display
   const classesByDay: { [key: string]: any[] } = useMemo(() => {
@@ -258,7 +256,7 @@ export default function SchedulePage() {
             Access Denied
           </h2>
           <p className="text-red-600">
-            You don't have permission to access this page.
+            You don&apos;t have permission to access this page.
           </p>
         </div>
       </div>
@@ -324,8 +322,6 @@ export default function SchedulePage() {
         selectedDays={selectedDays}
         onDayToggle={handleDayToggle}
         classTypes={classTypes || []}
-        weeklyTemplate={weeklyTemplate}
-        activeDay={activeDay}
         onSave={handleSaveSlot}
         onApplyToDays={handleApplySlotToDays}
         isLoading={mutationsLoading}
